@@ -16,7 +16,7 @@ jobs:
     # does or disable this workflow until they do.
     runs-on: macos-26
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Select latest Xcode
         run: sudo xcode-select -s /Applications/Xcode.app
