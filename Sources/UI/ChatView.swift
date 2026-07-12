@@ -68,9 +68,11 @@ struct ChatView: View {
                     .font(HaloiOSStyle.title)
                     .foregroundStyle(HaloiOSStyle.textPrimary)
                     .lineLimit(1)
-                Text(connectionSubtitle)
-                    .font(HaloiOSStyle.caption)
-                    .foregroundStyle(HaloiOSStyle.textSecondary)
+                if !connectionSubtitle.isEmpty {
+                    Text(connectionSubtitle)
+                        .font(HaloiOSStyle.caption)
+                        .foregroundStyle(HaloiOSStyle.textSecondary)
+                }
             }
             Spacer()
             connectionIndicator
@@ -119,8 +121,10 @@ struct ChatView: View {
             return "Connecting you to your Mac…"
         case .signedIn:
             if reach.isAwaitingReply { return reach.thinkingLine ?? "On it…" }
+            // Once the round-trip is confirmed, the "Connected" pill says it all —
+            // no subtitle. Only nudge when the toggle still needs turning on.
             return reach.endToEndConfirmed
-                ? "On your Mac, when it's awake"
+                ? ""
                 : "Turn on the toggle on your Mac, then say hi"
         case .noAccount:
             return "Sign into iCloud to reach your Mac"
