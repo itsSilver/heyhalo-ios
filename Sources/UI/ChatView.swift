@@ -4,7 +4,7 @@ import PhotosUI
 import SwiftUI
 import UIKit
 
-/// The one screen (spec §7): a flat, time-ordered conversation with your Mac's
+/// The one screen (spec §7): a flat, time-ordered conversation with your computer's
 /// Halo. User bubbles trail right, Halo bubbles lead left, a `needs-confirm`
 /// prompt renders as a card, and the footer shows the honest delivery state.
 ///
@@ -118,16 +118,16 @@ struct ChatView: View {
     private var connectionSubtitle: String {
         switch reach.connection {
         case .checking:
-            return "Connecting you to your Mac…"
+            return "Connecting you to your computer…"
         case .signedIn:
             if reach.isAwaitingReply { return reach.thinkingLine ?? "On it…" }
             // Once the round-trip is confirmed, the "Connected" pill says it all —
             // no subtitle. Only nudge when the toggle still needs turning on.
             return reach.endToEndConfirmed
                 ? ""
-                : "Turn on the toggle on your Mac, then say hi"
+                : "Turn on the toggle on your computer, then say hi"
         case .noAccount:
-            return "Sign into iCloud to reach your Mac"
+            return "Sign into iCloud to reach your computer"
         case .restricted:
             return "iCloud is restricted on this iPhone"
         case .couldNotDetermine(let message):
@@ -394,7 +394,7 @@ struct ChatView: View {
 }
 
 /// A persisted, quiet system notice inside the thread (today: the "couldn't
-/// reach your Mac" stall record). Mirrors the look of the transient `stalledRow`
+/// reach your computer" stall record). Mirrors the look of the transient `stalledRow`
 /// — moon icon + soft glass pill — but it's a real, scrolling history row that a
 /// later reply lands beneath rather than a banner that vanishes.
 private struct NoticeRow: View {

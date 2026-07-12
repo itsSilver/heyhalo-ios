@@ -58,7 +58,7 @@ final class ReachCloudKitClient: ObservableObject {
         didSet {
             // A reply / confirm arriving (or a send failing) clears this; kill
             // the stall timer so a turn that WAS answered can't later flash a
-            // false "couldn't reach your Mac" notice, and drop the wait clock.
+            // false "couldn't reach your computer" notice, and drop the wait clock.
             if !isAwaitingReply {
                 replyTimeoutTask?.cancel()
                 replyTimeoutTask = nil
@@ -89,7 +89,7 @@ final class ReachCloudKitClient: ObservableObject {
     /// arrived on this device. iCloud being signed in only proves the phone
     /// half; a reply is the first moment we know the Mac is listening on the
     /// same account with the toggle on. Persisted so a returning user who's
-    /// already connected once doesn't get demoted back to "needs your Mac."
+    /// already connected once doesn't get demoted back to "needs your computer."
     @Published private(set) var endToEndConfirmed: Bool =
         UserDefaults.standard.bool(forKey: endToEndConfirmedDefaultsKey)
 
@@ -241,7 +241,7 @@ final class ReachCloudKitClient: ObservableObject {
             // it honestly instead of trapping. On a signed device with the
             // iCloud capability + the Halo container added, this path is taken.
             log.notice("Reach iOS: CloudKit container unavailable (no iCloud capability?)")
-            connection = .couldNotDetermine("Add this app to your iCloud to reach your Mac.")
+            connection = .couldNotDetermine("Add this app to your iCloud to reach your computer.")
             return
         }
 
@@ -444,7 +444,7 @@ final class ReachCloudKitClient: ObservableObject {
         if isDemo { return await sendDemo(body) }
         _ = resolveContainer()
         guard let database else {
-            connection = .couldNotDetermine("Add this app to your iCloud to reach your Mac.")
+            connection = .couldNotDetermine("Add this app to your iCloud to reach your computer.")
             return nil
         }
 
@@ -525,7 +525,7 @@ final class ReachCloudKitClient: ObservableObject {
             return (
                 "You're signed out of iCloud. Sign back in from Settings → your name, then try again.",
                 true,
-                "Sign into iCloud to reach your Mac."
+                "Sign into iCloud to reach your computer."
             )
         case .networkUnavailable, .networkFailure:
             return (
@@ -696,7 +696,7 @@ final class ReachCloudKitClient: ObservableObject {
     }
 
     /// Arm the stall timer for a just-delivered message. If no reply lands
-    /// within `replyTimeout`, append a local "couldn't reach your Mac" notice
+    /// within `replyTimeout`, append a local "couldn't reach your computer" notice
     /// (folded by id so a repeat can't double it) and drop the awaiting state
     /// so the "On it…" footer disappears. A real reply that arrives later still
     /// shows below the notice, and the notice never fires once a reply/confirm
@@ -943,7 +943,7 @@ final class ReachCloudKitClient: ObservableObject {
             ReachMessage(
                 role: .halo,
                 body:
-                    "Hi! This is a live demo of Halo. Ask me anything and I'll answer right here, the same way I would from your Mac.",
+                    "Hi! This is a live demo of Halo. Ask me anything and I'll answer right here, the same way I would from your computer.",
                 status: .answered,
                 threadID: threadID
             )

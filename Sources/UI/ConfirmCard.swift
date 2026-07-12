@@ -34,7 +34,7 @@ struct ConfirmCard: View {
                 .fixedSize(horizontal: false, vertical: true)
 
             if answered {
-                Text("Got it — sent your answer to your Mac.")
+                Text("Got it — sent your answer to your computer.")
                     .font(HaloiOSStyle.caption)
                     .foregroundStyle(HaloiOSStyle.textSecondary)
             } else {

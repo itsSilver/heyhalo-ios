@@ -74,7 +74,7 @@ struct ConnectionStatusDescriptor {
         switch tone {
         case .connected: return "Connected"
         case .signedInPendingMac: return "Signed into iCloud"
-        case .macUnresponsive: return "Mac not responding"
+        case .macUnresponsive: return "Computer not responding"
         case .checking: return "Checking iCloud…"
         case .needsAttention:
             switch connection {
@@ -90,7 +90,7 @@ struct ConnectionStatusDescriptor {
         switch tone {
         case .connected: return "Connected ✓"
         case .signedInPendingMac: return "Signed into iCloud ✓"
-        case .macUnresponsive: return "Your Mac isn't answering"
+        case .macUnresponsive: return "Your computer isn't answering"
         case .checking: return "Checking iCloud…"
         case .needsAttention:
             switch connection {
@@ -105,23 +105,23 @@ struct ConnectionStatusDescriptor {
     var detail: String {
         switch tone {
         case .connected:
-            return "You've heard back from Halo on your Mac, so the whole path is working. Just text it anything."
+            return "You've heard back from Halo on your computer, so the whole path is working. Just text it anything."
         case .macUnresponsive:
             return
-                "You've connected before, but your last message hasn't come back. Your Mac may be asleep, or \"Listen for messages from my phone\" may be off over there. It'll go through once your Mac is awake with Reach on."
+                "You've connected before, but your last message hasn't come back. Your computer may be asleep, or \"Listen for messages from my phone\" may be off over there. It'll go through once your computer is awake with Reach on."
         case .signedInPendingMac:
             return
-                "Open Halo on your Mac and turn on \"Listen for messages from my phone\" (the same iCloud account as this iPhone). Send a message here, and if Halo replies, you're fully connected. I can only see the iCloud side from here, so your Mac needs that toggle on."
+                "Open Halo on your computer and turn on \"Listen for messages from my phone\" (the same iCloud account as this iPhone). Send a message here, and if Halo replies, you're fully connected. I can only see the iCloud side from here, so your computer needs that toggle on."
         case .checking:
             return "One moment while I check your iCloud account."
         case .needsAttention:
             switch connection {
             case .noAccount:
                 return
-                    "Sign into iCloud in Settings, on the same account as your Mac. That shared account is what lets this iPhone and your Mac reach each other, with no address to type."
+                    "Sign into iCloud in Settings, on the same account as your computer. That shared account is what lets this iPhone and your computer reach each other, with no address to type."
             case .restricted:
                 return
-                    "iCloud is restricted on this iPhone (for example by Screen Time or a device profile). Allow iCloud, on the same account as your Mac, to reach it from here."
+                    "iCloud is restricted on this iPhone (for example by Screen Time or a device profile). Allow iCloud, on the same account as your computer, to reach it from here."
             case .couldNotDetermine(let reason):
                 return reason
             case .checking, .signedIn:

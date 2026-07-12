@@ -106,7 +106,7 @@ struct ChatListView: View {
             Text("No chats yet")
                 .font(HaloiOSStyle.title)
                 .foregroundStyle(HaloiOSStyle.textPrimary)
-            Text("Start a chat and text Halo on your Mac from right here.")
+            Text("Start a chat and text Halo on your computer from right here.")
                 .font(HaloiOSStyle.body)
                 .foregroundStyle(HaloiOSStyle.textSecondary)
                 .multilineTextAlignment(.center)

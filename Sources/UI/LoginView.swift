@@ -50,7 +50,7 @@ struct LoginView: View {
                     .multilineTextAlignment(.center)
 
                 Text(
-                    "Your messages are secured end-to-end through your own iCloud and answered privately on your Mac. Nothing you send is ever stored on Halo's servers."
+                    "Your messages are secured end-to-end through your own iCloud and answered privately on your computer. Nothing you send is ever stored on Halo's servers."
                 )
                 .font(.system(size: 15))
                 .foregroundStyle(HaloiOSStyle.textSecondary)

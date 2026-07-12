@@ -28,7 +28,7 @@ enum ReachLiveActivityController {
         ActivityAuthorizationInfo().areActivitiesEnabled
     }
 
-    /// Begin a turn: "delivered, waiting for your Mac". Clears any orphaned
+    /// Begin a turn: "delivered, waiting for your computer". Clears any orphaned
     /// island first (from a prior turn / force-quit) so the new turn gets a
     /// fresh activity with the correct threadID — never a duplicate or a stale
     /// one routing to the wrong chat.
@@ -37,7 +37,7 @@ enum ReachLiveActivityController {
         await set(
             .init(
                 phase: .thinking,
-                line: "Delivered, waiting for your Mac…",
+                line: "Delivered, waiting for your computer…",
                 chatTitle: title(chatTitle),
                 confirm: nil
             ),
@@ -101,7 +101,7 @@ enum ReachLiveActivityController {
     /// is lost when the app is force-quit / relaunched WHILE the Activity itself
     /// survives — so re-adopt it from ActivityKit's live list. Without this, a
     /// reply that lands after a relaunch can't end the island and it spins
-    /// "Delivered, waiting for your Mac…" forever (field 2026-06-24).
+    /// "Delivered, waiting for your computer…" forever (field 2026-06-24).
     private static func adoptedCurrent() -> Activity<ReachActivityAttributes>? {
         if let current { return current }
         current = Activity<ReachActivityAttributes>.activities.last

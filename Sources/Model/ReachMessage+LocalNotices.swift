@@ -19,7 +19,7 @@ extension ReachMessage {
     /// True for a phone-authored, CloudKit-free notice (the stall record).
     var isLocalNotice: Bool { status == .localNotice }
 
-    /// Build a local-only "couldn't reach your Mac" stall note for a turn. It is
+    /// Build a local-only "couldn't reach your computer" stall note for a turn. It is
     /// appended to the thread so the stall is part of the visible history (a late
     /// reply lands *below* it rather than erasing it). `awaitedMessageID` is the
     /// user message we're still waiting on, folded into the id so a repeated
@@ -32,7 +32,7 @@ extension ReachMessage {
         ReachMessage(
             id: localNoticeIDPrefix + awaitedMessageID,
             role: .system,
-            body: "Couldn't reach your Mac — it may be asleep. I'll deliver this when it's back.",
+            body: "Couldn't reach your computer — it may be asleep. I'll deliver this when it's back.",
             createdAt: createdAt,
             status: .localNotice,
             replyTo: awaitedMessageID,

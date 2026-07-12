@@ -10,7 +10,7 @@ private let log = Logger(subsystem: "com.silvercommerce.halo", category: "reach.
 ///
 /// - The phone can only verify its OWN side (the iCloud account). It cannot see
 ///   whether the Mac is awake or has the toggle on, so it never claims
-///   "Connected to your Mac" on iCloud status alone — it says "Signed into
+///   "Connected to your computer" on iCloud status alone — it says "Signed into
 ///   iCloud" and points the user at the one thing the phone can't do for them
 ///   (turn the Mac toggle on). The first real reply is the only end-to-end
 ///   proof, and that promotes the indicator to "Connected" inside the chat.
@@ -60,12 +60,12 @@ struct OnboardingView: View {
                 Text("Halo")
                     .font(.system(size: 30, weight: .semibold))
                     .foregroundStyle(HaloiOSStyle.textPrimary)
-                Text("Text Halo on your Mac, from right here.")
+                Text("Text Halo on your computer, from right here.")
                     .font(.system(size: 18, weight: .medium))
                     .foregroundStyle(HaloiOSStyle.textPrimary)
                     .multilineTextAlignment(.center)
                 Text(
-                    "Your message rides your own iCloud. The thinking happens on your Mac, and nothing passes through anyone else's servers."
+                    "Your message rides your own iCloud. The thinking happens on your computer, and nothing passes through anyone else's servers."
                 )
                 .font(HaloiOSStyle.body)
                 .foregroundStyle(HaloiOSStyle.textSecondary)
