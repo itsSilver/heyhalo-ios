@@ -4,11 +4,11 @@ import SwiftUI
 /// Top-level flow shell. Owns the launch sequence and the access gate so the
 /// rest of the app doesn't have to:
 ///
-///   Splash  →  Login  (signed out)
-///           →  Paywall (signed in, no active plan)
-///           →  RootView (entitled — the existing iCloud onboarding / chat)
+///   Splash  →  Login    (signed out)
+///           →  Inactive (signed in, account not active)
+///           →  RootView (active — the existing iCloud onboarding / chat)
 ///
-/// Login is the gate (proves a Halo subscription); it never carries chat —
+/// Login is the gate (proves the account is active); it never carries chat —
 /// messages still ride CloudKit to the Mac inside `RootView`.
 struct AppRootView: View {
     @EnvironmentObject private var account: HaloAccount
@@ -47,8 +47,8 @@ struct AppRootView: View {
         }
         .onChange(of: scenePhase) { _, phase in
             if phase == .active {
-                // Re-check the plan when the app comes forward, so a lapsed
-                // subscription flips to the paywall instead of silently failing.
+                // Re-check the account when the app comes forward, so a lapsed
+                // license flips to the inactive screen instead of silently failing.
                 Task { await account.refreshAccount() }
                 // Resume the conversation poll — and fetch immediately, so a
                 // reply that landed while backgrounded is on screen at once.
@@ -66,8 +66,8 @@ struct AppRootView: View {
         switch account.access {
         case .entitled:
             RootView()
-        case .needsSubscription:
-            PaywallView()
+        case .inactive:
+            InactiveAccountView()
         case .signedOut, .loading:
             // `.loading` only reaches here if the max-splash ceiling fired while
             // a check was still in flight — fall back to login rather than hang.

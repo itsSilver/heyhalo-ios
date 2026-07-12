@@ -3,7 +3,7 @@ import Foundation
 import Security
 
 /// Tiny Keychain wrapper for the one secret the phone holds: the Halo Cloud
-/// session token (used to prove the account is subscribed before Reach unlocks).
+/// session token (used to prove the account is active before Reach unlocks).
 /// Mirrors the Mac's `KeychainStore` (same service id + `genericPassword` shape)
 /// so the two stay conceptually aligned.
 ///

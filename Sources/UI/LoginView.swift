@@ -2,9 +2,9 @@
 import SwiftUI
 
 /// The sign-in gate. Mirrors the web: continue with GitHub, or get a magic link
-/// by email. Login proves the account has a Halo plan (Reach is premium); it
-/// never carries chat — messages still ride your own iCloud to your Mac, and
-/// are answered privately on the Mac.
+/// by email. Login proves the Halo account is active; it never carries chat —
+/// messages still ride your own iCloud to your computer, and are answered
+/// privately there.
 struct LoginView: View {
     @EnvironmentObject private var account: HaloAccount
     @State private var email = ""

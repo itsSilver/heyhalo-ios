@@ -1,18 +1,15 @@
 // SPDX-License-Identifier: Apache-2.0
 import SwiftUI
 
-/// The Account screen (a sheet from the chat). Shows who you are, your plan, and
-/// your usage this period, with manage-on-web and sign-out. All of it comes
-/// from `/v1/account/me` — the same source as the Mac's account card.
+/// The Account screen (a sheet from the chat). Shows who you are and your usage
+/// this period, with sign-out and account deletion. All of it comes from
+/// `/v1/account/me` — the same source as the Mac's account card.
 struct AccountView: View {
     @EnvironmentObject private var account: HaloAccount
     @EnvironmentObject private var reach: ReachCloudKitClient
-    @Environment(\.openURL) private var openURL
     @Environment(\.dismiss) private var dismiss
 
     @State private var showDeleteConfirm = false
-
-    private static let manageURL = URL(string: "https://heyhalo.app/account")!
 
     var body: some View {
         NavigationStack {
@@ -25,7 +22,7 @@ struct AccountView: View {
                         if let usage = account.account?.usage {
                             usageCard(usage)
                         }
-                        manageButtons
+                        accountActions
                     }
                     .padding(20)
                     .frame(maxWidth: 520)
@@ -54,7 +51,7 @@ struct AccountView: View {
                     Text(account.account?.user.email ?? "Signed in")
                         .font(HaloiOSStyle.bodyEmphasis)
                         .foregroundStyle(HaloiOSStyle.textPrimary)
-                    Text(account.account?.planLabel ?? "Halo")
+                    Text(account.account?.statusLabel ?? "Halo")
                         .font(HaloiOSStyle.caption)
                         .foregroundStyle(HaloiOSStyle.accent)
                 }
@@ -122,23 +119,8 @@ struct AccountView: View {
         }
     }
 
-    private var manageButtons: some View {
+    private var accountActions: some View {
         VStack(spacing: 12) {
-            Button {
-                openURL(Self.manageURL)
-            } label: {
-                Text("Manage subscription")
-                    .font(HaloiOSStyle.bodyEmphasis)
-                    .foregroundStyle(HaloiOSStyle.accent)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-                    .background(
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .stroke(HaloiOSStyle.confirmStroke, lineWidth: 1)
-                    )
-            }
-            .buttonStyle(.plain)
-
             Button {
                 account.signOut()
                 dismiss()
@@ -191,7 +173,7 @@ struct AccountView: View {
             }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("This permanently deletes your account and all its data, and cancels any subscription. This can't be undone.")
+            Text("This permanently deletes your account and all its data. This can't be undone.")
         }
     }
 

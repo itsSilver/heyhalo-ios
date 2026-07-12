@@ -919,12 +919,14 @@ final class ReachCloudKitClient: ObservableObject {
 
     // MARK: - App Review demo mode
     //
-    // A fully offline demo for App Review: no CloudKit, no Mac, no network.
-    // Turned on only when the user signs in with the demo email
-    // (`HaloAccount.enterDemoMode`, bridged in `HaloiOSApp`), so a reviewer can
-    // experience the whole chat (send a message, watch Halo think, get a reply)
-    // without the paired-Mac setup they can't replicate. Disclosed in the App
-    // Store review notes. Replies are canned and nothing ever leaves the device.
+    // A self-contained demo for App Review, turned on only when the user signs
+    // in with the demo email (`HaloAccount.enterDemoMode`, bridged in
+    // `HaloiOSApp`). Reach is normally answered on the user's paired Mac, which a
+    // reviewer can't replicate — so the demo skips CloudKit entirely and gets
+    // REAL answers from the public demo endpoint (`POST /v1/reach/demo-chat`),
+    // falling back to a warm canned line if it's unreachable. Disclosed in the
+    // App Store review notes; nothing here touches a real account or anyone's
+    // iCloud.
 
     /// Switch the client into the offline demo: a connected-looking state and a
     /// seeded welcome thread. Idempotent.
@@ -948,8 +950,9 @@ final class ReachCloudKitClient: ObservableObject {
         ])
     }
 
-    /// Offline send: optimistic user insert, a brief thinking beat, a canned
-    /// reply. Mirrors the real `send` shape so the UI behaves identically.
+    /// Demo send: optimistic user insert, then a REAL reply from the public
+    /// demo endpoint so a reviewer gets a genuine answer with no paired Mac.
+    /// Mirrors the real `send` shape so the UI behaves identically.
     private func sendDemo(_ body: String) async -> ReachMessage? {
         let threadID = activeThreadID()
         let message = ReachMessage(role: .user, body: body, status: .delivered, threadID: threadID)
@@ -958,13 +961,13 @@ final class ReachCloudKitClient: ObservableObject {
         isAwaitingReply = true
         thinkingLine = "Thinking…"
 
-        try? await Task.sleep(nanoseconds: 1_300_000_000)
+        let reply = await Self.fetchDemoReply(for: body)
         guard isDemo else { return message }
 
         upsert([
             ReachMessage(
                 role: .halo,
-                body: Self.demoReply(for: body),
+                body: reply,
                 status: .answered,
                 threadID: threadID
             )
@@ -974,22 +977,41 @@ final class ReachCloudKitClient: ObservableObject {
         return message
     }
 
-    /// A small, warm canned responder so the demo conversation feels real.
-    private static func demoReply(for prompt: String) -> String {
-        let p = prompt.lowercased()
-        if p.contains("hello") || p.contains("hey") || p.hasPrefix("hi") {
-            return
-                "Hey! Good to see you. Try asking me to look something up or draft a quick note, and I'll show you how I respond."
+    /// Ask the public demo endpoint (`POST /v1/reach/demo-chat`) for a real
+    /// model answer. No auth and no CloudKit — it exists so App Review can test
+    /// with genuine responses. Returns a warm fallback line on any network /
+    /// parse failure so the demo never dead-ends.
+    private static func fetchDemoReply(for prompt: String) async -> String {
+        var req = URLRequest(
+            url: HaloAccount.baseURL.appendingPathComponent("v1/reach/demo-chat")
+        )
+        req.httpMethod = "POST"
+        req.setValue("application/json", forHTTPHeaderField: "content-type")
+        req.setValue("HaloiOS", forHTTPHeaderField: "x-halo-client")
+        req.timeoutInterval = 30
+        // Clamp to the endpoint's message cap so an over-long prompt gets a real
+        // answer rather than a 400 → fallback.
+        req.httpBody = try? JSONSerialization.data(
+            withJSONObject: ["message": String(prompt.prefix(500))]
+        )
+        struct DemoResponse: Decodable { let reply: String? }
+        do {
+            let (data, response) = try await URLSession.shared.data(for: req)
+            let status = (response as? HTTPURLResponse)?.statusCode ?? 0
+            guard (200..<300).contains(status),
+                let decoded = try? JSONDecoder().decode(DemoResponse.self, from: data),
+                let reply = decoded.reply?.trimmingCharacters(in: .whitespacesAndNewlines),
+                !reply.isEmpty
+            else {
+                return demoFallbackReply
+            }
+            return reply
+        } catch {
+            return demoFallbackReply
         }
-        if p.contains("remind") || p.contains("calendar") || p.contains("meeting") {
-            return
-                "I'd set that against your calendar on your Mac and confirm the time with you. In the real app this reply comes straight from your own device."
-        }
-        if p.contains("weather") {
-            return
-                "On your Mac I'd pull your local forecast and give you the short version. This is a demo, so picture a clear, friendly summary landing right here."
-        }
-        return
-            "Got it. On your Mac I'd work through that and reply right here. This is the demo, so I'm answering locally to show you how the conversation feels."
     }
+
+    /// Shown only when the demo endpoint can't be reached.
+    private static let demoFallbackReply =
+        "I couldn't reach my brain for this demo just now. On your own computer I answer straight from what I remember — please try again in a moment."
 }

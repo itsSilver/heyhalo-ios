@@ -1,13 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
 import SwiftUI
 
-/// Shown when the user is signed in but their account has no active Halo plan.
-/// Reach is part of a paid Halo plan, set up on the Mac app or the website. As a
-/// companion to that multiplatform service, this screen only *reads* the
-/// account's plan state and unlocks Reach when it's active. It never sells a plan
-/// or links out to a purchase (App Store rules for multiplatform services). So
-/// the only actions here are: re-check the account, or sign out.
-struct PaywallView: View {
+/// Shown when the user is signed in but their Halo account isn't active yet.
+/// Halo is a companion to the app on the user's own computer, so this screen
+/// only *reads* whether the account is active and unlocks Reach when it is. It
+/// never sells anything, names a price, or links out to a purchase — the only
+/// actions are: re-check the account, or sign out.
+struct InactiveAccountView: View {
     @EnvironmentObject private var account: HaloAccount
 
     var body: some View {
@@ -20,7 +19,7 @@ struct PaywallView: View {
                 HaloPresenceMark(isThinking: false, diameter: 84)
 
                 VStack(spacing: 10) {
-                    Text("Reach is a Halo plan feature")
+                    Text("This account isn't active yet")
                         .font(.system(size: 22, weight: .semibold))
                         .foregroundStyle(HaloiOSStyle.textPrimary)
                         .multilineTextAlignment(.center)
@@ -64,9 +63,9 @@ struct PaywallView: View {
     private var bodyCopy: String {
         if let email = account.account?.user.email, !email.isEmpty {
             return
-                "You're signed in as \(email), but this account doesn't have an active Halo plan yet. Reach unlocks here automatically once your plan is active."
+                "You're signed in as \(email). Set up Halo on your computer with this same account, and texting it from here unlocks automatically."
         }
         return
-            "This account doesn't have an active Halo plan yet. Reach unlocks here automatically once your plan is active."
+            "Set up Halo on your computer with this same account, and texting it from here unlocks automatically."
     }
 }

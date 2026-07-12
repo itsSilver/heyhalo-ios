@@ -6,9 +6,9 @@ import os
 private let log = Logger(subsystem: "com.silvercommerce.halo", category: "reach.ios.account")
 
 /// Owns sign-in + entitlement for the phone. Login is a GATE, not a chat
-/// transport: it proves the Halo account is subscribed (Reach is premium) and
-/// powers the Account screen. Conversation content never goes near this — that
-/// still rides CloudKit to the Mac.
+/// transport: it proves the Halo account is active (a cloud plan or the user's
+/// own key) and powers the Account screen. Conversation content never goes near
+/// this — that still rides CloudKit to the Mac.
 ///
 /// Token flow: GitHub (ASWebAuthenticationSession) or email magic link →
 /// Better Auth session token → Keychain → `Authorization: Bearer` on
@@ -20,8 +20,8 @@ final class HaloAccount: ObservableObject {
     enum Access: Equatable {
         case loading  // restoring a saved session / first check
         case signedOut  // no token — show login
-        case needsSubscription  // signed in, but no active plan — show paywall
-        case entitled  // signed in + subscribed — unlock Reach
+        case inactive  // signed in, but the account isn't active — show the inactive screen
+        case entitled  // signed in + active license — unlock Reach
     }
 
     @Published private(set) var access: Access = .loading
@@ -110,17 +110,17 @@ final class HaloAccount: ObservableObject {
             guard status < 500 else {
                 lastError = "Our servers had trouble (HTTP \(status))."
                 // Keep whatever access we had; don't sign the user out on a blip.
-                if access == .loading { access = isSignedIn ? .needsSubscription : .signedOut }
+                if access == .loading { access = isSignedIn ? .inactive : .signedOut }
                 return
             }
             let me = try JSONDecoder().decode(AccountMe.self, from: data)
             account = me
-            access = me.isEntitled ? .entitled : .needsSubscription
+            access = me.isActive ? .entitled : .inactive
             lastError = nil
-            log.notice("account refreshed entitled=\(me.isEntitled, privacy: .public)")
+            log.notice("account refreshed active=\(me.isActive, privacy: .public)")
         } catch {
             lastError = error.localizedDescription
-            if access == .loading { access = isSignedIn ? .needsSubscription : .signedOut }
+            if access == .loading { access = isSignedIn ? .inactive : .signedOut }
         }
     }
 

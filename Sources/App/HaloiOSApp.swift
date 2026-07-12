@@ -4,12 +4,12 @@ import os
 
 private let log = Logger(subsystem: "com.silvercommerce.halo", category: "reach.ios")
 
-/// The phone companion: text your Mac's Halo from your iPhone. The message
-/// rides your own iCloud (Apple relays it), the thinking happens on your Mac,
-/// and nothing passes through Halo's servers.
+/// The phone companion: text Halo on your computer from your iPhone. The
+/// message rides your own iCloud (Apple relays it), the thinking happens on your
+/// computer, and nothing passes through Halo's servers.
 ///
-/// One flat conversation, one screen (spec §7). Auth / paywall is a later slice
-/// — iCloud is automatic via CloudKit, so for now we assume the user is entitled.
+/// One flat conversation, one screen (spec §7). Login gates on an active
+/// account; iCloud carries the conversation via CloudKit.
 @main
 struct HaloiOSApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
@@ -19,8 +19,8 @@ struct HaloiOSApp: App {
     /// the UI is bound to.
     @StateObject private var reach = ReachCloudKitClient()
 
-    /// Sign-in + entitlement gate (login proves a subscription; it never carries
-    /// chat — that still rides CloudKit to the Mac).
+    /// Sign-in + entitlement gate (login proves the account is active; it never
+    /// carries chat — that still rides CloudKit to the Mac).
     @StateObject private var account = HaloAccount()
 
     var body: some Scene {
