@@ -1,0 +1,55 @@
+{
+  "identifier" : "A1B2C3D4-0000-0000-0000-HALOCLOUD001",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+
+  ],
+  "settings" : {
+    "_billingIssuesAreEnabled" : false,
+    "_storeKitErrors" : [
+
+    ]
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "A1B2C3D4-0000-0000-0000-HALOGROUP001",
+      "localizations" : [
+
+      ],
+      "name" : "Halo Cloud",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "8.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "A1B2C3D4-0000-0000-0000-HALOSUB00001",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Text Halo from your phone with cloud answers.",
+              "displayName" : "Halo Cloud",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.silvercommerce.halo.cloud.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Halo Cloud Monthly",
+          "subscriptionGroupID" : "A1B2C3D4-0000-0000-0000-HALOGROUP001",
+          "type" : "RecurringSubscription"
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 3,
+    "minor" : 0
+  }
+}

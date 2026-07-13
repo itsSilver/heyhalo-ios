@@ -224,7 +224,7 @@ end
 # test target all compile the exact same type and can't drift. The Halo macOS
 # app links the same package, so the phone and the Mac speak an identical wire.
 reachkit = project.new(Xcodeproj::Project::Object::XCRemoteSwiftPackageReference)
-reachkit.repositoryURL = "https://github.com/itsSilver/heyhalo-reach-kit.git"
+reachkit.repositoryURL = "https://github.com/HeyHalo-App/heyhalo-reach-kit.git"
 reachkit.requirement = { "kind" => "upToNextMajorVersion", "minimumVersion" => "1.0.0" }
 project.root_object.package_references << reachkit
 
@@ -249,6 +249,16 @@ scheme = Xcodeproj::XCScheme.new
 scheme.add_build_target(app)
 scheme.add_test_target(tests)
 scheme.set_launch_target(app)
+
+# Point the LaunchAction at the local StoreKit config so in-simulator runs can
+# exercise the IAP flow (Subscribe / Restore / Manage) without a sandbox Apple
+# Account. The App Store product of the same id (com.silvercommerce.halo.cloud.
+# monthly) drives real builds; this file only matters for local testing. The
+# identifier is the path relative to the .xcodeproj container.
+storekit_ref = REXML::Element.new("StoreKitConfigurationFileReference")
+storekit_ref.add_attribute("identifier", "../Halo.storekit")
+scheme.launch_action.xml_element.add_element(storekit_ref)
+
 scheme.save_as(PROJECT_PATH, "HaloiOS", true) # shared
 
 puts "Generated #{PROJECT_PATH}"

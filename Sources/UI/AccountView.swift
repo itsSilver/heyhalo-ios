@@ -7,6 +7,7 @@ import SwiftUI
 struct AccountView: View {
     @EnvironmentObject private var account: HaloAccount
     @EnvironmentObject private var reach: ReachCloudKitClient
+    @EnvironmentObject private var store: StoreService
     @Environment(\.dismiss) private var dismiss
 
     @State private var showDeleteConfirm = false
@@ -121,6 +122,26 @@ struct AccountView: View {
 
     private var accountActions: some View {
         VStack(spacing: 12) {
+            // Apple's native manage-subscriptions sheet (not an external link) —
+            // the App-Store-sanctioned way to change or cancel an IAP. Shown
+            // when the account carries a subscription.
+            if account.account?.subscription != nil {
+                Button {
+                    Task { await store.manageSubscriptions() }
+                } label: {
+                    Text("Manage subscription")
+                        .font(HaloiOSStyle.bodyEmphasis)
+                        .foregroundStyle(HaloiOSStyle.accent)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .background(
+                            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                .stroke(Color.white.opacity(0.12), lineWidth: 1)
+                        )
+                }
+                .buttonStyle(.plain)
+            }
+
             Button {
                 account.signOut()
                 dismiss()
