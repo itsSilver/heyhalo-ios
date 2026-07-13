@@ -10,10 +10,9 @@ private let log = Logger(subsystem: "com.silvercommerce.halo", category: "reach.
 /// own key) and powers the Account screen. Conversation content never goes near
 /// this — that still rides CloudKit to the Mac.
 ///
-/// Token flow: GitHub (ASWebAuthenticationSession) or email magic link →
-/// Better Auth session token → Keychain → `Authorization: Bearer` on
-/// `GET /v1/account/me`. (Token-capture wire details finalised against the
-/// backend; see `handleCallback`.)
+/// Token flow: email magic link → Better Auth session token → Keychain →
+/// `Authorization: Bearer` on `GET /v1/account/me`. (Token-capture wire details
+/// finalised against the backend; see `handleCallback`.)
 @MainActor
 final class HaloAccount: ObservableObject {
 
@@ -48,12 +47,12 @@ final class HaloAccount: ObservableObject {
 
     /// Email that activates the offline App Review demo (disclosed in the App
     /// Store review notes). Typing it on the login screen signs in instantly —
-    /// no magic link, no GitHub, no Mac — into a self-contained demo chat.
+    /// no magic link, no Mac — into a self-contained demo chat.
     /// Scoped to this one address; it grants only the canned demo experience and
     /// never touches real Reach, the backend, or anyone's data.
     static let demoEmail = "appreview@heyhalo.app"
 
-    /// Better Auth redirects here after GitHub / magic-link succeed; this server
+    /// Better Auth redirects here after magic-link succeeds; this server
     /// route reads the session cookie and bounces to `halo://auth-callback?token=…`
     /// (it lives on the API origin, so it's a trusted callbackURL). See ADR 0037.
     static var nativeHandoffURL: String {
@@ -65,8 +64,6 @@ final class HaloAccount: ObservableObject {
     /// (CSRF protection); a browser sends this automatically, a native client
     /// must set it explicitly. Matches the site origin the backend trusts.
     static let webOrigin = "https://heyhalo.app"
-
-    private let web = WebAuthService()
 
     private var token: String? {
         KeychainStore.read(account: KeychainStore.sessionTokenAccount)
@@ -208,51 +205,31 @@ final class HaloAccount: ObservableObject {
         access = .signedOut
     }
 
-    /// Sign into the offline App Review demo: a synthetic entitled account, no
-    /// token, no network. Activated only from the demo email on the login
-    /// screen. The chat itself runs offline too — see
+    /// Sign into the App Review demo (no token, no network). Activated only from
+    /// the demo email on the login screen. Lands on the Subscribe screen —
+    /// deliberately, so a reviewer can SEE the In-App Purchase is offered
+    /// (guideline 3.1.1) — with a "Continue to demo chat" button that calls
+    /// ``continueDemo`` to reach the real demo chat and verify functionality.
+    /// The chat runs against the public demo endpoint — see
     /// `ReachCloudKitClient.enableDemoMode`, bridged in `HaloiOSApp`.
     func enterDemoMode() {
         account = .demo(email: Self.demoEmail)
         isDemo = true
         lastError = nil
         magicLinkSentTo = nil
-        access = .entitled
+        access = .inactive
         log.notice("Entered App Review demo mode")
     }
 
-    // MARK: - Sign in
-
-    /// GitHub OAuth via the system auth sheet. Asks the relay for the provider
-    /// URL, runs the sheet, then captures the token from the `halo://` callback.
-    func signInWithGitHub() async {
-        busy = true
-        lastError = nil
-        defer { busy = false }
-        // Open the server-side `native-start` route directly in the auth sheet so
-        // the WHOLE OAuth flow (state cookie → GitHub → callback → session →
-        // handoff) lives in one web context. Initiating via URLSession instead
-        // set the OAuth state cookie in a different jar, so the GitHub callback
-        // failed state verification and showed Better Auth's error page (ADR 0037).
-        var comps = URLComponents(
-            url: Self.baseURL.appendingPathComponent("v1/auth/native-start"),
-            resolvingAgainstBaseURL: false
-        )
-        comps?.queryItems = [URLQueryItem(name: "provider", value: "github")]
-        guard let startURL = comps?.url else {
-            lastError = "Couldn't start GitHub sign-in."
-            return
-        }
-        do {
-            let callback = try await web.authenticate(url: startURL, scheme: Self.callbackScheme)
-            await handleCallback(url: callback)
-        } catch WebAuthError.cancelled {
-            // User dismissed the sheet — not an error worth surfacing loudly.
-            log.notice("GitHub sign-in cancelled by user")
-        } catch {
-            lastError = "Couldn't sign in with GitHub. \(error.localizedDescription)"
-        }
+    /// Advance the App Review demo from the Subscribe screen into the demo chat.
+    /// Demo-only; no-op otherwise.
+    func continueDemo() {
+        guard isDemo else { return }
+        access = .entitled
+        log.notice("Demo continued to chat")
     }
+
+    // MARK: - Sign in
 
     /// Email magic link, mirroring the web. Sends the link; the user taps it and
     /// the `halo://` callback brings them back signed in.
@@ -290,6 +267,37 @@ final class HaloAccount: ObservableObject {
             return true
         } catch {
             lastError = error.localizedDescription
+            return false
+        }
+    }
+
+    /// Send a StoreKit-verified transaction (its JWS) to the relay so the
+    /// backend can validate it against Apple and activate the account. On
+    /// success we re-read `/v1/account/me`, which flips `access` to `.entitled`.
+    /// Returns true when the account is active afterwards.
+    @discardableResult
+    func verifyAppleTransaction(_ jws: String) async -> Bool {
+        // The demo account is offline and already entitled — nothing to verify.
+        if isDemo { return true }
+        guard let token else { return false }
+        var req = URLRequest(url: Self.baseURL.appendingPathComponent("v1/iap/apple/verify"))
+        req.httpMethod = "POST"
+        req.setValue("application/json", forHTTPHeaderField: "content-type")
+        req.setValue("Bearer \(token)", forHTTPHeaderField: "authorization")
+        req.setValue("HaloiOS", forHTTPHeaderField: "x-halo-client")
+        req.timeoutInterval = 20
+        req.httpBody = try? JSONSerialization.data(withJSONObject: ["transaction": jws])
+        do {
+            let (_, response) = try await URLSession.shared.data(for: req)
+            let status = (response as? HTTPURLResponse)?.statusCode ?? 0
+            guard (200..<300).contains(status) else {
+                log.notice("iap verify HTTP \(status, privacy: .public)")
+                return false
+            }
+            await refreshAccount()
+            return access == .entitled
+        } catch {
+            log.notice("iap verify error: \(error.localizedDescription, privacy: .public)")
             return false
         }
     }

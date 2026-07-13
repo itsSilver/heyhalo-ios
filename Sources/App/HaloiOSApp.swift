@@ -23,11 +23,24 @@ struct HaloiOSApp: App {
     /// carries chat — that still rides CloudKit to the Mac).
     @StateObject private var account = HaloAccount()
 
+    /// In-app purchase surface (StoreKit). Buying Halo Cloud here activates the
+    /// account via the relay, alongside the web/BYOK paths.
+    @StateObject private var store = StoreService()
+
     var body: some Scene {
         WindowGroup {
             AppRootView()
                 .environmentObject(reach)
                 .environmentObject(account)
+                .environmentObject(store)
+                .task {
+                    // Bridge a StoreKit-verified purchase to the account layer,
+                    // then start watching for renewals / restores.
+                    store.onVerify = { [account] jws in
+                        await account.verifyAppleTransaction(jws)
+                    }
+                    store.start()
+                }
                 .onChange(of: account.isDemo) { _, isDemo in
                     // App Review demo: when the demo email signs in, switch the
                     // chat client into its offline canned-reply mode too.
@@ -54,8 +67,8 @@ struct HaloiOSApp: App {
                 .onOpenURL { url in
                     switch url.host {
                     case "auth-callback", "signin":
-                        // Magic-link / license-key handoff (the GitHub sheet
-                        // resolves inline). Capture the token, refresh access.
+                        // Magic-link / license-key handoff. Capture the token,
+                        // refresh access.
                         Task { await account.handleCallback(url: url) }
                     case "chat":
                         // Island / Live Activity tap. "halo://chat/<threadID>"

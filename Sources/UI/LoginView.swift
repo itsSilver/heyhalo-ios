@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
 import SwiftUI
 
-/// The sign-in gate. Mirrors the web: continue with GitHub, or get a magic link
-/// by email. Login proves the Halo account is active; it never carries chat —
-/// messages still ride your own iCloud to your computer, and are answered
-/// privately there.
+/// The sign-in gate. Get a magic link by email. Login proves the Halo account
+/// is active; it never carries chat — messages still ride your own iCloud to
+/// your computer, and are answered privately there.
 struct LoginView: View {
     @EnvironmentObject private var account: HaloAccount
     @State private var email = ""
@@ -61,12 +60,10 @@ struct LoginView: View {
         }
     }
 
-    // MARK: - Actions (GitHub + magic link)
+    // MARK: - Actions (magic link)
 
     private var actions: some View {
         VStack(spacing: 16) {
-            githubButton
-            dividerOr
             magicLink
 
             if let error = account.lastError {
@@ -77,52 +74,6 @@ struct LoginView: View {
                     .transition(.opacity)
             }
         }
-    }
-
-    private var githubButton: some View {
-        Button {
-            Task { await account.signInWithGitHub() }
-        } label: {
-            HStack(spacing: 10) {
-                if account.busy {
-                    ProgressView().tint(.black)
-                } else {
-                    Image("GitHubMark")
-                        .renderingMode(.template)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 20, height: 20)
-                }
-                Text("Continue with GitHub")
-                    .font(.system(size: 16, weight: .semibold))
-            }
-            .foregroundStyle(.black)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 16)
-            .background(
-                RoundedRectangle(cornerRadius: 15, style: .continuous)
-                    .fill(HaloiOSStyle.accent)
-            )
-            .shadow(color: HaloiOSStyle.accent.opacity(0.28), radius: 14, y: 5)
-        }
-        .buttonStyle(.plain)
-        .disabled(account.busy)
-        .opacity(account.busy ? 0.7 : 1)
-    }
-
-    private var dividerOr: some View {
-        HStack(spacing: 14) {
-            line
-            Text("or")
-                .font(.system(size: 12, weight: .medium))
-                .foregroundStyle(HaloiOSStyle.textSecondary.opacity(0.8))
-            line
-        }
-        .padding(.vertical, 2)
-    }
-
-    private var line: some View {
-        Rectangle().fill(Color.white.opacity(0.09)).frame(height: 1)
     }
 
     @ViewBuilder
